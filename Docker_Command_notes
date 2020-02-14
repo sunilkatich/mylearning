@@ -1,0 +1,65 @@
+Basic Docker 
+===============
+
+#Docker version checks 
+docker -v
+
+#Docker images checks
+docker images
+docker image ls
+
+#Docker conatiner 
+docker ps -a
+docker container ls -a
+
+#Docker pull the image from docker hub and run as conatiner
+docker image pull hello-world
+docker container run hello-world
+
+docker image pull alpine
+docker image run alpine ls
+
+#Run the conatiner without detach mode forground mode
+docker container run apline ls -l
+
+#Run the conatiner as -d detach mode background mode
+docker conatiner  run -d alpine /bin/sh
+(or)
+docker run -d --name myalpine-conatiner alpine sh
+
+
+#docker conatiner run as interactive mode -i interactive -t tty 
+docker container exec -it <container_name> /bin/sh
+#check uname -a by running inside the container
+
+#webapp conatiner(nginx) and expose to the internet
+docker image pull nginx 
+docker container run -dt --name ngnix-conatiner -p 80:80 nginx
+docker conatiner ps 
+curl localhost
+
+#-v or --volume: Consists of three fields, separated by colon characters (:). The fields must be in the correct order, and the meaning of each field is not immediately obvious
+docker container run --name mynginxnew -v /home/cloud_user/html_test:/usr/share/nginx/html -dt -p 80:80 nginx
+
+#Stop the conatiner all the conatiner and delete the same
+$ docker container stop $(docker container ls -aq)
+$ docker container rm $(docker container ls -aq)
+
+#Force stop and remove the container all the conatiner
+$ docker container rm -f $(docker container ls -aq)
+
+#start and restart the conatiner
+$ docker container start 6566f44a6397
+$ docker container restart <container id>
+
+#To view operation of images history
+docker image history nginx
+
+Docker Under the hood
+=========================
+
+
+
+
+
+
