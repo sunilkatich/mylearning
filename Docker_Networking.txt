@@ -1,0 +1,36 @@
+
+docker0 interface when install docker serivce in host system.
+
+docker network ls
+docker network inspect bridge 
+docker network inspect bridge  | grep subnet
+docker network inspect bridge  | grep conatiner
+docker info | grep Network
+
+Create own network with different subnet
+========================================
+docker network create mynetwork
+ip addr 
+doocker network ls
+docker network inspect mynetwork
+docker container run -dt --network mynetwork --name mycentos centos
+docker container inspect mycentos
+
+Swicth the container to other network (bridge to mynetwork)
+===========================================================
+docker network connect mynetwork <container_id>
+docker conatiner inspect <container_id> | grep -i ipadd
+
+#same way disconnect
+docker network disconnect mynetwork <container_id>
+
+Creating the custom-network with custom-ip range
+====================================================
+docker network create --subnet 192.168.0.0/24 --gateway 192.168.0.0 my-custom-network
+docker network ls
+docker network inspect my-custome-network
+#create the docker conatiner and check the ip rangg
+
+#creating with static IP 
+docker container run -dt --ip 192.168.1.1 mynetwork --name mycentos centos
+
