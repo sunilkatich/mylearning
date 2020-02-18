@@ -1,0 +1,89 @@
+Docker Under the hood
+=========================
+
+Control groups
+**************
+Docker Engine on Linux also relies on another technology called control groups (cgroups). 
+A cgroup limits an application to a specific set of resources. 
+Control groups allow Docker Engine to share available hardware resources to containers and optionally enforce limits and constraints. 
+For example, you can limit the memory available to a specific container.
+
+1.What is the Kernel version of your Docker container?
+
+$ uname -a
+Linux node1 4.4.0-173-generic #203-Ubuntu SMP Wed Jan 15 02:55:01 UTC 2020 x86_64 Linux
+
+$docker container run centos
+
+$ docker container exec -it 6f3344bfd66e /bin/bash
+[root@6f3344bfd66e /]# uname -a
+Linux 6f3344bfd66e 4.4.0-173-generic #203-Ubuntu SMP Wed Jan 15 02:55:01 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+
+Notes:-
+Docker container run from the docker host so using the same kernel version.
+Windows container cant run on docker linux host whereas docker windows host can run linux container.
+
+
+2.How much default memory is allocated to my Docker container?
+Check by free -g command both docker host as well as container.
+
+3.Is there is any way to restrict how much amount of memory we can allocate to the container?
+
+Notes : 
+Before Rhel6 memory restriction done by ulimt command of the users and groups . After rhel6 restriction can be done by cgroups
+By cgroups we can restrict by IO/memory/CPU
+
+$docker container run -dt -m 1G centos myoscontainer
+
+[root@ab3b2205a5eb /]# cat /sys/fs/cgroup/memory/memory.limit_in_bytes   
+1073741824
+(or)
+docker container stats <docker_container_id)
+
+$docker container run -dt --cpus=2 centos  bash
+
+Namespaces:-
+*************
+Docker uses a technology called namespaces to provide the isolated workspace called the container. its isolating the process/memory/net/io from host to container.
+
+The pid namespace: Process isolation (PID: Process ID).
+The net namespace: Managing network interfaces (NET: Networking).
+The ipc namespace: Managing access to IPC resources (IPC: InterProcess Communication).
+The mnt namespace: Managing filesystem mount points (MNT: Mount).
+The uts namespace: Isolating kernel and version identifiers. (UTS: Unix Timesharing System
+
+#sharing the docker host process to the conatiner  
+docker container run -dt --pid=host centos bash
+check the ps -aef
+
+#sharing the docker host root filesystem to conatiner (-v is volume).
+$ docker container run -dt -v /:/host_root_fs --privileged centos bash
+$ docker container run -it --privileged centos:centos7 bash
+
+
+docker container exec -it <conatiner_id>
+check cd /host_root_fs/;ls -lrt
+
+#sharing the host network to conatiner 
+docker container -dt run --net=host centos
+docker container exec -it <conatiner_id>
+
+check ifconfig -a
+
+#This command will show you real time docker activity if you stop/start .
+docker system events 
+
+
+Docker Logging
+=================
+Docker info | grep -i log
+#default logging is json format 
+
+docker container run -dt centos ping google.com
+docker container logs <containerid>
+
+#Check the logs default path and if you want to chnage the --log-drive none will disable the log.
+docker container inspect <containerid>
+
+docker info | grep -i debug
+jounernalctl -u docker.service
