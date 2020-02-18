@@ -1,0 +1,124 @@
+Docker Files
+=====================
+
+#it will pull latest image from docker hub if you want pull all the image use -a
+#good pratice to pull the image with the version
+docker image --help  / docker image pull --help
+docker image pull ubuntu
+
+#should be save as Dockerfile
+
+FROM ubuntu => layer -1 each line have intermediate container will create once start the second layer it will delete .
+RUN apt-get update => layer -2  
+RUN app-get -y install ngnix-conatiner
+CMD ["nginx","-g","daemon off;"]
+
+* FROM: A Dockerfile must start with a FROM instruction. The FROM instruction specifies the Base Image from which you are building.
+* RUN: The RUN instruction will execute any commands in a new layer on top of the current image and commit the results. The resulting committed image will be used for the next step in the Dockerfile
+* CMD: The main purpose of a CMD is to provide defaults for an executing container
+
+#docker  image build through the dockerfile( -t refer the tag) ( . refer as current dir or use -f /tmp/DockerFile)
+docker build -t mynginx:1.0 .
+
+#if you dont want pull the image form cash if it already download use the tag line --no-cache and it will download from dockerhub
+docker build -t mynginx:2.0 . --no-cache
+
+Docker image history <image_id>
+
+Notes :-
+#docker image is read only layer 
+#Docker conatiner is read write layer and we can add  thats is COW(Copy on Write).
+
+#Build the image from the conatiner . If we made any inside activity conatiner and if you want to make it as an image follow the below.
+docker container --help
+#-p is pause if use that option while convert container to image at the time container will be in pause mode(not accessable).
+docker container commit -a  "author_name" -m "message" <conatiner_id:version>
+docker images ls
+(or)
+#we can archieve the conatiner and build as an image.
+
+Notes:-
+#COPY and ADD are both DockerFile instructions that serve a similar purpose. Both COPY and ADD let you copy files from a specific location into a Docker image
+#Difference is ADD can copy the file from remote location to dest like git location and ADD command if you copy the .tar file it will extract then copy to dest.
+#COPY command if you copying it should be dockerfile location not from anyother location (COPY index.html /var/www/html/)
+#ADD to fetch packages from remote URLs is strongly discouraged; you should use curl or wget instead. That way you can delete the files you no longer need after they’ve been extracted and you don’t have to add another layer in your image.
+
+HEALTHCHECK
+===========
+HEALTHCHECK instruction tells Docker how to test a container to check that it is still working.
+When Docker starts a container, it monitors the process that the container runs. If the process ends, the container exits.
+This is just a basic check and doesn’t necessarily tell the details about the application.
+
+$ docker container run -dt --name mybusybox busybox sh
+#TO get the IP address 
+$ docker inspect --format '{{ .NetworkSettings.IPAddress }}' mybusybox
+
+DockerFile
+***********
+FROM busybox
+HEALTHCHECK --interval=5s CMD ping -c 1 172.17.0.2
+
+#Build the image and run the container then see below status.
+docker container inspect <conatiner_id>
+docker container stop <conatiner_id>
+
+ENTRYPOINT
+==========
+ENTRYPOINT: An ENTRYPOINT allows you to configure a container that will run as an executable.
+What is the main difference between ENTRYPOINT and CMD?  - ENTRYPOINT doesn’t allow you to override the command.
+in case of CMD instruction it’s possible to override the default command but it’s not possible in case of ENTRYPOINT instruction.
+
+DockerFile
+**********
+FROM busybox
+ENTRYPOINT ["/bin/ping"]
+
+$ docker build -t entrypoint .
+$ docker container run -dt --name entrypoint01 entrypoint sh
+$ docker container ls -a
+$ docker container run -dt --name entrypoint02 entrypoint -c 10 www.google.com
+
+DockerFile
+**********
+cat Dockerfile
+FROM busybox
+CMD ["sh"]
+
+$ docker build -t cmdimage .
+$ docker run -dt --name cmdcontainer01 cmdimage sh
+$ docker container ls
+$ docker run -dt --name cmdcontainer02 cmdimage ping -c 3 www.google.com
+$ docker container ls
+
+
+USER & WORKDIR
+=============
+USER: The USER instruction sets the user name (or UID) and optionally the user group (or GID) to use when running the image and for any RUN, CMD and ENTRYPOINT instructions that follow it in the Dockerfile
+WORKDIR : The WORKDIR instruction sets the working directory for any RUN, CMD, ENTRYPOINT, COPY and ADD instructions that follow it in the Dockerfile.
+
+FROM centos
+RUN useradd -ms /bin/bash centos_user
+USER centos_user
+ADD index.html /home/centos_user
+WORKDIR /home/centos_user
+EXPOSE 80
+
+User Directive is used to create a non-privileged user. Rather than using root, we can use a non-privileged user to configure and run an application.
+
+Dockerignore
+============
+
+FROM busybox
+COPY ignore/ /tmp/
+
+$ mkdir ignore
+$touch index.html test.txt
+
+$ cat .dockerignore 
+*/*.txt
+
+docker build -t myignoreimage1 .
+
+
+
+
